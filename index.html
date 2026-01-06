@@ -26,7 +26,7 @@
       --glass: rgba(255,255,255,0.03);
     }
     *{box-sizing:border-box;font-family:"Cairo",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue","Noto Sans Arabic",Arial;}
-    html,body{height:100%;margin:0;background:radial-gradient(900px 600px at 10% 20%, rgba(124,58,237,0.12), transparent 6%), radial-gradient(700px 450px at 95% 80%, rgba(6,182,212,0.08), transparent 6%), linear-gradient(180deg, var(--bg-1), var(--bg-2)); color:#dce9f5;}
+    html,body{height:100%;margin:0;background:radial-gradient(900px 600px at 10% 20%, rgba(124,58,237,0.12), transparent 6%), radial-gradient(700px 450px at 95% 80%, rgba(6,182,212,0.08), transparent [...] 
     .app{max-width:1300px;margin:24px auto;padding:20px;display:grid;grid-template-columns: 1fr;gap:18px}
     header{display:flex;gap:12px;align-items:center;justify-content:space-between}
     .brand{display:flex;gap:14px;align-items:center}
@@ -72,7 +72,7 @@
     .table-controls{display:flex;gap:8px;align-items:center;justify-content:space-between}
     .search{padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
     table{width:100%;border-collapse:collapse;font-size:13px}
-    thead th{position:sticky;top:0;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--muted);padding:10px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.04)}
+    thead th{position:sticky;top:0;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--muted);padding:10px;text-align:right;border-bottom:1px solid rgba(255,[...]
     tbody td{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03);color:#dce9f5}
     tbody tr:hover td{background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));}
     .pill{padding:6px 8px;border-radius:999px;font-size:12px;background:rgba(255,255,255,0.03);color:var(--muted)}
@@ -150,7 +150,8 @@
               <div style="font-weight:700">أعلى أرصدة</div>
               <div class="meta">رصيد السيستم</div>
             </div>
-            <div id="barChart" class="small-chart"></div>
+            <!-- Increased height so names fit better and made room for name+value label -->
+            <div id="barChart" class="small-chart" style="height:180px"></div>
           </div>
 
           <div class="card">
@@ -317,26 +318,56 @@
     }
 
     function renderBarChart(topByBalance) {
+      // keep full names for labels but trim axis labels if too long
       const names = topByBalance.map(r => r.name || '');
       const values = topByBalance.map(r => Number(r.balance) || 0);
+
       const option = {
         backgroundColor:'transparent',
         grid:{left:8,right:16,top:10,bottom:20},
         xAxis:{type:'value',show:false},
-        yAxis:{type:'category',data:names, inverse:true, axisLine:{show:false}, axisTick:{show:false}, axisLabel:{color: '#cfe9ff'}},
+        yAxis:{
+          type:'category',
+          data:names,
+          inverse:true,
+          axisLine:{show:false},
+          axisTick:{show:false},
+          axisLabel:{
+            color: '#cfe9ff',
+            fontSize: 13,
+            // trim long names on the axis to keep layout tidy
+            formatter: function(value) {
+              if (!value) return '';
+              return value.length > 28 ? value.slice(0,28) + '…' : value;
+            },
+            rich: {}
+          }
+        },
         series:[{
           type:'bar',
           data:values,
-          barWidth:12,
+          barWidth:14,
           itemStyle:{
             borderRadius:8,
             color: new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#06b6d4'},{offset:1,color:'#7c3aed'}]),
             shadowBlur:12, shadowColor:'rgba(124,58,237,0.2)'
           },
+          // show both product name and the value on the right side of the bar using rich text
           label:{
             show:true,
             position:'right',
-            formatter: function(params){ return formatNumber(params.value); }
+            // use a function so we can include full name and formatted value
+            formatter: function(params){
+              const name = names[params.dataIndex] || '';
+              const val = formatNumber(params.value);
+              // keep label compact: name (trimmed) + value
+              const shortName = name.length > 30 ? name.slice(0,30) + '…' : name;
+              return `${shortName}  ${val}`;
+            },
+            // text styling for the label
+            color: '#dce9f5',
+            fontSize: 12,
+            distance: 8
           }
         }]
       };
