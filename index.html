@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
@@ -13,7 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 
   <!-- Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pQ2X...omitted..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
   <style>
     :root{
@@ -27,7 +26,7 @@
       --glass: rgba(255,255,255,0.03);
     }
     *{box-sizing:border-box;font-family:"Cairo",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue","Noto Sans Arabic",Arial;}
-    html,body{height:100%;margin:0;background:radial-gradient(900px 600px at 10% 20%, rgba(124,58,237,0.12), transparent 6%), radial-gradient(700px 450px at 95% 80%, rgba(6,182,212,0.08), transparent 10%), linear-gradient(180deg,var(--bg-1),var(--bg-2)); color:#e6eef6;}
+    html,body{height:100%;margin:0;background:radial-gradient(900px 600px at 10% 20%, rgba(124,58,237,0.12), transparent 6%), radial-gradient(700px 450px at 95% 80%, rgba(6,182,212,0.08), transparent 6%), linear-gradient(180deg, var(--bg-1), var(--bg-2)); color:#dce9f5;}
     .app{max-width:1300px;margin:24px auto;padding:20px;display:grid;grid-template-columns: 1fr;gap:18px}
     header{display:flex;gap:12px;align-items:center;justify-content:space-between}
     .brand{display:flex;gap:14px;align-items:center}
@@ -73,7 +72,7 @@
     .table-controls{display:flex;gap:8px;align-items:center;justify-content:space-between}
     .search{padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
     table{width:100%;border-collapse:collapse;font-size:13px}
-    thead th{position:sticky;top:0;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--muted);padding:10px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.03)}
+    thead th{position:sticky;top:0;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--muted);padding:10px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.04)}
     tbody td{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03);color:#dce9f5}
     tbody tr:hover td{background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));}
     .pill{padding:6px 8px;border-radius:999px;font-size:12px;background:rgba(255,255,255,0.03);color:var(--muted)}
@@ -148,7 +147,7 @@
         <div class="cards-row">
           <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <div style="font-weight:700">أعلى 10 أرصدة</div>
+              <div style="font-weight:700">أعلى أرصدة</div>
               <div class="meta">رصيد السيستم</div>
             </div>
             <div id="barChart" class="small-chart"></div>
@@ -209,8 +208,6 @@
         </div>
 
         <footer>
-          بيانات مستخرجة من Google Sheet عبر API · عنوان الـ API:
-          <a href="https://script.google.com/macros/s/AKfycbzXQ-Jkb-b-Y4NR4qRfXsNlw0Ljf5pxoYFrXmTEhau4noTvKHNB03MnkkWyv-6rtO2UkQ/exec" target="_blank" style="color:var(--accent2)">Google Apps Script</a>
         </footer>
       </div>
     </section>
@@ -313,14 +310,15 @@
       data.forEach((d, i) => {
         const div = document.createElement('div');
         div.className = 'item';
-        div.innerHTML = `<span class="dot" style="background:${colorPalette[i % colorPalette.length]}"></span><div>${d.name} <span style="color:var(--muted);margin-inline-start:6px">(${d.value})</span></div>`;
+        div.innerHTML = '<span class="dot" style="background:' + colorPalette[i % colorPalette.length] + '"></span>' +
+                        '<div>' + (d.name || 'غير مسمى') + ' <span style="color:var(--muted);margin-inline-start:6px">(' + d.value + ')</span></div>';
         pieLegendEl.appendChild(div);
       });
     }
 
     function renderBarChart(topByBalance) {
-      const names = topByBalance.map(r => r.name);
-      const values = topByBalance.map(r => r.balance);
+      const names = topByBalance.map(r => r.name || '');
+      const values = topByBalance.map(r => Number(r.balance) || 0);
       const option = {
         backgroundColor:'transparent',
         grid:{left:8,right:16,top:10,bottom:20},
@@ -335,7 +333,11 @@
             color: new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#06b6d4'},{offset:1,color:'#7c3aed'}]),
             shadowBlur:12, shadowColor:'rgba(124,58,237,0.2)'
           },
-          label:{show:true,position:'right',formatter: v => formatNumber(v)}
+          label:{
+            show:true,
+            position:'right',
+            formatter: function(params){ return formatNumber(params.value); }
+          }
         }]
       };
       barChart.setOption(option);
@@ -361,9 +363,14 @@
 
     function renderSupplyDays(daysArray) {
       // build histogram buckets
-      const max = Math.max(...daysArray.filter(v=>!isNaN(v)), 0);
+      const valid = daysArray.filter(v=>!isNaN(v));
+      const max = valid.length ? Math.max(...valid) : 0;
       const bucketCount = Math.min(8, Math.max(4, Math.ceil(max / 5) || 4));
-      const buckets = Array.from({length:bucketCount},(_,i)=>({min: Math.round(i*max/bucketCount), max: Math.round((i+1)*max/bucketCount), count:0}));
+      const buckets = Array.from({length:bucketCount},(_,i)=>{
+        const min = Math.round(i*max/bucketCount);
+        const maxv = Math.round((i+1)*max/bucketCount);
+        return {min, max: maxv, count:0};
+      });
       daysArray.forEach(v=>{
         if (isNaN(v)) return;
         const idx = Math.min(bucketCount-1, Math.floor(v / (max/bucketCount || 1)));
@@ -455,7 +462,10 @@
           parsed._requested = extractNumber(r['الكمية المطلوبة']);
           parsed._requestedDisplay = r['الكمية المطلوبة'] ?? '';
           parsed['رصيد السيستم'] = extractNumber(r['رصيد السيستم']);
-          parsed['مدة التوريد من تاريخ الطلب'] = extractNumber(r['مدة التوريد من تاريخ الطلب']) || '';
+          parsed['مدة التوريد من تاريخ الطلب'] = (() => {
+            const v = extractNumber(r['مدة التوريد من تاريخ الطلب']);
+            return isNaN(v) ? '' : v;
+          })();
           return parsed;
         });
 
@@ -482,8 +492,11 @@
           if (r['مدة التوريد من تاريخ الطلب'] !== '') supplyDays.push(Number(r['مدة التوريد من تاريخ الطلب']) || 0);
         });
 
-        // Top 10 by system balance
-        const topByBalance = [...allRows].sort((a,b)=> (b['رصيد السيستم'] || 0) - (a['رصيد السيستم'] || 0)).slice(0,10).map(r => ({name:r['اسم الصنف'], balance:r['رصيد السيستم'] || 0}));
+        // Top by system balance (fixing previous truncation/bug)
+        const topByBalance = [...allRows]
+          .sort((a,b)=> (Number(b['رصيد السيستم']) || 0) - (Number(a['رصيد السيستم']) || 0))
+          .slice(0,10)
+          .map(r => ({ name: r['اسم الصنف'] ?? '', balance: Number(r['رصيد السيستم']) || 0 }));
 
         // Render charts
         renderPieChart(byCategory);
