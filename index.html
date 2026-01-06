@@ -26,7 +26,7 @@
       --glass: rgba(255,255,255,0.03);
     }
     *{box-sizing:border-box;font-family:"Cairo",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue","Noto Sans Arabic",Arial;}
-    html,body{height:100%;margin:0;background:radial-gradient(900px 600px at 10% 20%, rgba(124,58,237,0.12), transparent 6%), radial-gradient(700px 450px at 95% 80%, rgba(6,182,212,0.08), transparent 50%), linear-gradient(180deg, var(--bg-1), var(--bg-2));color:#dce9f5}
+    html,body{height:100%;margin:0;background:radial-gradient(900px 600px at 10% 20%, rgba(124,58,237,0.12), transparent 6%), radial-gradient(700px 450px at 95% 80%, rgba(6,182,212,0.08), transparent [...] 
     .app{max-width:1300px;margin:24px auto;padding:20px;display:grid;grid-template-columns: 1fr;gap:18px}
     header{display:flex;gap:12px;align-items:center;justify-content:space-between}
     .brand{display:flex;gap:14px;align-items:center}
@@ -72,7 +72,7 @@
     .table-controls{display:flex;gap:8px;align-items:center;justify-content:space-between}
     .search{padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
     table{width:100%;border-collapse:collapse;font-size:13px}
-    thead th{position:sticky;top:0;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--muted);padding:10px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.04)}
+    thead th{position:sticky;top:0;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--muted);padding:10px;text-align:right;border-bottom:1px solid rgba(255,[...]
     tbody td{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03);color:#dce9f5}
     tbody tr:hover td{background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));}
     .pill{padding:6px 8px;border-radius:999px;font-size:12px;background:rgba(255,255,255,0.03);color:var(--muted)}
@@ -148,9 +148,10 @@
           <!-- Removed: "أعلى أرصدة" card as requested -->
 
           <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <!-- Edited: stack title and meta vertically and align to the right to remove empty horizontal gap -->
+            <div style="display:flex;flex-direction:column;align-items:flex-end;margin-bottom:8px">
               <div style="font-weight:700">حالة التوافر</div>
-              <div class="meta">نفذت / علي وشك</div>
+              <div class="meta" style="margin-top:4px">نفذت / علي وشك</div>
             </div>
             <div id="statusDonut" class="small-chart"></div>
           </div>
@@ -427,7 +428,7 @@
           parsed._lastSupplied = extractNumber(r['اخر كمية تم توريدها']);
           parsed._requested = extractNumber(r['الكمية المطلوبة']);
           parsed._requestedDisplay = r['الكمية المطلوبة'] ?? '';
-          parsed['رصيد السيستم'] = extractNumber(r['رصيد السيستم']);
+          parsed['رصيد السي��تم'] = extractNumber(r['رصيد السيستم']);
           parsed['مدة التوريد من تاريخ الطلب'] = (() => {
             const v = extractNumber(r['مدة التوريد من تاريخ الطلب']);
             return isNaN(v) ? '' : v;
@@ -493,7 +494,7 @@
     });
 
     openSourceBtn.addEventListener('click', () => {
-      alert('هذه صفحة HTML مستقلة تعرض لوحة بيانات من Google Sheets عبر API.\nيمكنك تعديل الملف محلياً أو إضافته إلى سيرفر.');
+      alert('هذه صفحة HTML مستقلة تعرض لوحة بيانات من Google Sheets عبر API.\nيمكنك تعديل الملف محلياً أو إضافيته إلى سيرفر.');
     });
 
     searchInput.addEventListener('input', applyFiltersAndSearch);
