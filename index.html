@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
@@ -6,13 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title> Dashboard</title>
 
-  <!-- Google font for Arabic -->
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <!-- ECharts (modern, flexible, great for neon/dark themes) -->
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 
-  <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
   <style>
@@ -108,7 +104,6 @@
     </header>
 
     <section class="grid">
-      <!-- LEFT: KPIs & charts -->
       <div class="left-col">
         <div class="card">
           <div style="display:flex;justify-content:space-between;align-items:center">
@@ -148,14 +143,6 @@
         <div class="cards-row">
           <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <div style="font-weight:700">أعلى أرصدة</div>
-              <div class="meta">رصيد السيستم</div>
-            </div>
-            <div id="barChart" class="small-chart"></div>
-          </div>
-
-          <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
               <div style="font-weight:700">حالة التوافر</div>
               <div class="meta">نفذت / علي وشك</div>
             </div>
@@ -173,7 +160,6 @@
 
       </div>
 
-      <!-- RIGHT: Table -->
       <div class="right-col">
         <div class="card">
           <div class="table-controls" style="margin-bottom:10px">
@@ -239,18 +225,21 @@
 
     const tableBody = document.querySelector('#dataTable tbody');
 
-    // ECharts instances
-    let pieChart, barChart, statusDonut, supplyDaysChart;
+    // ECharts instances (Removed barChart)
+    let pieChart, statusDonut, supplyDaysChart;
 
     function initCharts() {
       pieChart = echarts.init(document.getElementById('pieChart'), null, {renderer: 'canvas'});
-      barChart = echarts.init(document.getElementById('barChart'), null, {renderer: 'canvas'});
+      // Removed barChart init
       statusDonut = echarts.init(document.getElementById('statusDonut'), null, {renderer: 'canvas'});
       supplyDaysChart = echarts.init(document.getElementById('supplyDays'), null, {renderer: 'canvas'});
 
       // Responsive
       window.addEventListener('resize', () => {
-        pieChart.resize(); barChart.resize(); statusDonut.resize(); supplyDaysChart.resize();
+        pieChart.resize(); 
+        // Removed barChart.resize()
+        statusDonut.resize(); 
+        supplyDaysChart.resize();
       });
     }
 
@@ -317,32 +306,7 @@
       });
     }
 
-    function renderBarChart(topByBalance) {
-      const names = topByBalance.map(r => r.name || '');
-      const values = topByBalance.map(r => Number(r.balance) || 0);
-      const option = {
-        backgroundColor:'transparent',
-        grid:{left:8,right:16,top:10,bottom:20},
-        xAxis:{type:'value',show:false},
-        yAxis:{type:'category',data:names, inverse:true, axisLine:{show:false}, axisTick:{show:false}, axisLabel:{color: '#cfe9ff'}},
-        series:[{
-          type:'bar',
-          data:values,
-          barWidth:12,
-          itemStyle:{
-            borderRadius:8,
-            color: new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#06b6d4'},{offset:1,color:'#7c3aed'}]),
-            shadowBlur:12, shadowColor:'rgba(124,58,237,0.2)'
-          },
-          label:{
-            show:true,
-            position:'right',
-            formatter: function(params){ return formatNumber(params.value); }
-          }
-        }]
-      };
-      barChart.setOption(option);
-    }
+    // Removed renderBarChart function completely
 
     function renderStatusDonut(statusCounts) {
       const data = Object.entries(statusCounts).map(([k,v])=>({name:k, value:v}));
@@ -493,15 +457,9 @@
           if (r['مدة التوريد من تاريخ الطلب'] !== '') supplyDays.push(Number(r['مدة التوريد من تاريخ الطلب']) || 0);
         });
 
-        // Top by system balance (fixing previous truncation/bug)
-        const topByBalance = [...allRows]
-          .sort((a,b)=> (Number(b['رصيد السيستم']) || 0) - (Number(a['رصيد السيستم']) || 0))
-          .slice(0,10)
-          .map(r => ({ name: r['اسم الصنف'] ?? '', balance: Number(r['رصيد السيستم']) || 0 }));
-
         // Render charts
         renderPieChart(byCategory);
-        renderBarChart(topByBalance);
+        // Removed renderBarChart call
         renderStatusDonut(statusCounts);
         renderSupplyDays(supplyDays);
 
