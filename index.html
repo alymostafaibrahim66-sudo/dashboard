@@ -19,7 +19,7 @@
       --glass: rgba(255,255,255,0.03);
     }
     *{box-sizing:border-box;font-family:"Cairo",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue","Noto Sans Arabic",Arial;}
-    html,body{height:100%;margin:0;background:radial-gradient(900px 600px at 10% 20%, rgba(124,58,237,0.12), transparent 6%), radial-gradient(700px 450px at 95% 80%, rgba(6,182,212,0.08), transparent 20%), linear-gradient(180deg, #06121a 0%, #07121a 30%, #07121a 100%);color:#dce9f5}
+    html,body{height:100%;margin:0;background:radial-gradient(900px 600px at 10% 20%, rgba(124,58,237,0.12), transparent 6%), radial-gradient(700px 450px at 95% 80%, rgba(6,182,212,0.08), transparent 20%), linear-gradient(180deg,#06121a 0%,#07121a 30%,#07121a 100%);color:#dce9f5}
     .app{max-width:1300px;margin:24px auto;padding:20px;display:grid;grid-template-columns: 1fr;gap:18px}
     header{display:flex;gap:12px;align-items:center;justify-content:space-between}
     .brand{display:flex;gap:14px;align-items:center}
@@ -43,29 +43,28 @@
       gap:18px;
       align-items:start;
     }
-
-    /* left column: use dense flow so items fill gaps and equal heights where possible */
+    /* left column */
     .left-col{
       display:grid;
       gap:12px;
-      grid-auto-flow: dense;
+      grid-auto-flow: dense; /* allow denser packing to fill gaps */
       align-content:start;
     }
-
     .card{
       background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
       border:1px solid rgba(255,255,255,0.03);
       padding:14px;border-radius:12px;box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
       display:flex;
-      flex-direction:column; /* ensure header/content layout and enable chart to expand */
+      flex-direction:column;
     }
     .cards-row{
       display:grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns:repeat(2,1fr);
       gap:10px;
-      align-items:stretch; /* important: make both small cards equal height to avoid empty gaps */
-      grid-auto-rows: minmax(140px, 1fr); /* let small cards expand evenly */
+      align-items:stretch; /* make small card(s) same height to avoid empty gaps */
     }
+    /* allow a card in .cards-row to span both columns */
+    .status-full { grid-column: 1 / -1; }
     .stat{display:flex;flex-direction:column;gap:6px}
     .stat .value{font-weight:700;font-size:20px}
     .legend{display:flex;gap:8px;flex-wrap:wrap}
@@ -73,7 +72,7 @@
     .dot{width:12px;height:12px;border-radius:4px}
 
     /* charts containers */
-    .chart{height:240px; flex:1; min-height:160px}
+    .chart{height:240px; flex:1; min-height:140px}
     .small-chart{height:180px; flex:1; min-height:120px} /* allow flex expansion so no dangling empty space */
 
     /* right column */
@@ -86,14 +85,12 @@
     thead th {
         position: sticky;
         top: 0;
-        /* Change background to solid dark blue/grey for visibility */
-        background: #1e293b; 
-        /* Change text color to white and make it bold */
+        background: #1e293b;
         color: #ffffff;
         font-weight: 700;
         padding: 10px;
         text-align: right;
-        border-bottom: 2px solid var(--accent2); /* Added a cyan line under header */
+        border-bottom: 2px solid var(--accent2);
         z-index: 10;
     }
     /* --- EDITED SECTION END --- */
@@ -112,6 +109,7 @@
       .left-col{order:2}
       .right-col{order:1}
       .cards-row{grid-template-columns:1fr} /* stack small charts on mobile */
+      .status-full { grid-column: auto; } /* don't force spanning on narrow screens */
     }
   </style>
 </head>
@@ -169,24 +167,25 @@
           <div style="margin-top:10px" id="pieLegend" class="legend"></div>
         </div>
 
+        <!-- cards-row now used to show حالة التوافر but spanning both small columns
+             so it will occupy the small-card space AND the previous relation-chart small space -->
         <div class="cards-row">
-          <div class="card">
+          <div class="card status-full">
             <div style="display:flex;flex-direction:column;align-items:flex-end;margin-bottom:8px">
               <div style="font-weight:700">حالة التوافر</div>
               <div class="meta" style="margin-top:4px">نفذت / علي وشك</div>
             </div>
             <div id="statusDonut" class="small-chart"></div>
           </div>
+        </div>
 
-          <!-- Relation chart showing average lead time per category.
-               Both small cards are set to stretch to equal height to avoid empty gaps below. -->
-          <div class="card">
-            <div style="display:flex;flex-direction:column;align-items:flex-end;margin-bottom:8px">
-              <div style="font-weight:700">علاقة التصنيف ومدة التوريد</div>
-              <div class="meta" style="margin-top:4px">متوسط أيام التوريد لكل تصنيف</div>
-            </div>
-            <div id="relationChart" class="small-chart"></div>
+        <!-- large relation chart moved down to fill the empty left-bottom area -->
+        <div class="card">
+          <div style="display:flex;flex-direction:column;align-items:flex-end;margin-bottom:8px">
+            <div style="font-weight:700">علاقة التصنيف ومدة التوريد</div>
+            <div class="meta" style="margin-top:4px">متوسط أيام التوريد لكل تصنيف</div>
           </div>
+          <div id="relationChart" class="chart"></div>
         </div>
 
         <div class="card">
@@ -362,7 +361,6 @@
     function renderSupplyDays(daysArray) {
       const valid = daysArray.filter(v=>!isNaN(v) && v >= 0).map(Number);
       const max = valid.length ? Math.max(...valid) : 0;
-      // choose bucketCount based on max: prefer width about 5 days but cap buckets
       const approximateBucketWidth = 5;
       const bucketCount = Math.min(8, Math.max(4, Math.ceil((max + 1) / approximateBucketWidth)));
       const bucketWidth = Math.max(1, Math.ceil((max + 1) / bucketCount));
@@ -412,7 +410,6 @@
         relationChart.setOption({title: { text: 'لا توجد بيانات', left: 'center', top: '45%', textStyle: { color: '#9aa6b2' } }});
         return;
       }
-      // sort descending by avg
       data.sort((a,b) => b.avg - a.avg);
       const categories = data.map(d => d.category);
       const avgs = data.map(d => Math.round(d.avg * 100) / 100);
