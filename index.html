@@ -3,14 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title> Dashboard</title>
-
+  <title>Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
-
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
   <style>
     :root{
       --bg-1:#0f1724;
@@ -23,7 +19,7 @@
       --glass: rgba(255,255,255,0.03);
     }
     *{box-sizing:border-box;font-family:"Cairo",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue","Noto Sans Arabic",Arial;}
-    html,body{height:100%;margin:0;background:radial-gradient(900px 600px at 10% 20%, rgba(124,58,237,0.12), transparent 6%), radial-gradient(700px 450px at 95% 80%, rgba(6,182,212,0.08), transparent 6%), linear-gradient(180deg, var(--bg-1), var(--bg-2)); color:#dce9f5;}
+    html,body{height:100%;margin:0;background:radial-gradient(900px 600px at 10% 20%, rgba(124,58,237,0.12), transparent 6%), radial-gradient(700px 450px at 95% 80%, rgba(6,182,212,0.08), transparent 6%); background-color: var(--bg-1); color:white}
     .app{max-width:1300px;margin:24px auto;padding:20px;display:grid;grid-template-columns: 1fr;gap:18px}
     header{display:flex;gap:12px;align-items:center;justify-content:space-between}
     .brand{display:flex;gap:14px;align-items:center}
@@ -69,7 +65,23 @@
     .table-controls{display:flex;gap:8px;align-items:center;justify-content:space-between}
     .search{padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
     table{width:100%;border-collapse:collapse;font-size:13px}
-    thead th{position:sticky;top:0;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--muted);padding:10px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.04)}
+
+    /* --- EDITED SECTION START: TABLE HEADERS --- */
+    thead th {
+        position: sticky;
+        top: 0;
+        /* Change background to solid dark blue/grey for visibility */
+        background: #1e293b; 
+        /* Change text color to white and make it bold */
+        color: #ffffff;
+        font-weight: 700;
+        padding: 10px;
+        text-align: right;
+        border-bottom: 2px solid var(--accent2); /* Added a cyan line under header */
+        z-index: 10;
+    }
+    /* --- EDITED SECTION END --- */
+
     tbody td{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03);color:#dce9f5}
     tbody tr:hover td{background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));}
     .pill{padding:6px 8px;border-radius:999px;font-size:12px;background:rgba(255,255,255,0.03);color:var(--muted)}
@@ -142,9 +154,9 @@
 
         <div class="cards-row">
           <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="display:flex;flex-direction:column;align-items:flex-end;margin-bottom:8px">
               <div style="font-weight:700">حالة التوافر</div>
-              <div class="meta">نفذت / علي وشك</div>
+              <div class="meta" style="margin-top:4px">نفذت / علي وشك</div>
             </div>
             <div id="statusDonut" class="small-chart"></div>
           </div>
@@ -157,7 +169,6 @@
           </div>
           <div id="supplyDays" class="chart"></div>
         </div>
-
       </div>
 
       <div class="right-col">
@@ -193,7 +204,6 @@
             </table>
           </div>
         </div>
-
         <footer>
         </footer>
       </div>
@@ -225,29 +235,25 @@
 
     const tableBody = document.querySelector('#dataTable tbody');
 
-    // ECharts instances (Removed barChart)
+    // ECharts instances
     let pieChart, statusDonut, supplyDaysChart;
 
     function initCharts() {
       pieChart = echarts.init(document.getElementById('pieChart'), null, {renderer: 'canvas'});
-      // Removed barChart init
       statusDonut = echarts.init(document.getElementById('statusDonut'), null, {renderer: 'canvas'});
       supplyDaysChart = echarts.init(document.getElementById('supplyDays'), null, {renderer: 'canvas'});
 
       // Responsive
       window.addEventListener('resize', () => {
-        pieChart.resize(); 
-        // Removed barChart.resize()
-        statusDonut.resize(); 
-        supplyDaysChart.resize();
+        pieChart.resize(); statusDonut.resize(); supplyDaysChart.resize();
       });
     }
 
-    // Utility: extract first numeric value from mixed strings like "150 ك", "1 طن", "NR"
+    // Utility: extract first numeric value from mixed strings
     function extractNumber(x){
       if (x === null || x === undefined) return NaN;
       if (typeof x === 'number') return x;
-      const str = String(x).replace(/,/g, '.'); // handle comma decimals
+      const str = String(x).replace(/,/g, '.');
       const m = str.match(/-?\d+(\.\d+)?/);
       return m ? parseFloat(m[0]) : NaN;
     }
@@ -306,8 +312,6 @@
       });
     }
 
-    // Removed renderBarChart function completely
-
     function renderStatusDonut(statusCounts) {
       const data = Object.entries(statusCounts).map(([k,v])=>({name:k, value:v}));
       const colors = ['#ef4444','#f97316','#06b6d4','#7c3aed'];
@@ -327,7 +331,6 @@
     }
 
     function renderSupplyDays(daysArray) {
-      // build histogram buckets
       const valid = daysArray.filter(v=>!isNaN(v));
       const max = valid.length ? Math.max(...valid) : 0;
       const bucketCount = Math.min(8, Math.max(4, Math.ceil(max / 5) || 4));
@@ -459,7 +462,6 @@
 
         // Render charts
         renderPieChart(byCategory);
-        // Removed renderBarChart call
         renderStatusDonut(statusCounts);
         renderSupplyDays(supplyDays);
 
@@ -493,7 +495,7 @@
     });
 
     openSourceBtn.addEventListener('click', () => {
-      alert('هذه صفحة HTML مستقلة تعرض لوحة بيانات من Google Sheets عبر API.\nيمكنك تعديل الملف محلياً أو إضافته إلى سيرفر.');
+      alert('هذه صفحة HTML مستقلة تعرض لوحة بيانات من Google Sheets عبر API.\nيمكنك تعديل الملف محلياً أو إضافيته إلى سيرفر.');
     });
 
     searchInput.addEventListener('input', applyFiltersAndSearch);
